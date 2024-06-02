@@ -2,6 +2,29 @@
 
 Size the text to the size of the parent widget.
 
+### Feature
+* No matter how large the FontSize is, **reset the fontSize** based on the width of the parent widget and the set maxLines.
+* Support word-break functionality so words don't break.
+
+## How to Use
+
+It's similar to using a typical Text Widget.  
+Inputable arguments are left open the same as the arguments in Text Widget.
+~~~
+final text = "Strings Strings...";
+final style = TextStyle(
+    ...
+    fontSize: 200,
+    color: Colors.balck,
+    ...
+);
+const SizeTailoredText(
+    text: text,
+    textStyle: style,
+    maxLines: 5,
+);
+~~~
+
 ## License
 
 MIT License
