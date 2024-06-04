@@ -27,7 +27,6 @@ class _MyAppState extends State<MyApp> {
       color: Colors.black,
       fontWeight: FontWeight.w800,
       height: 1.2,
-      backgroundColor: Colors.blue,
     );
 
     return MaterialApp(
@@ -38,12 +37,20 @@ class _MyAppState extends State<MyApp> {
         body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              borderContainer(const Text(text, style: style, maxLines: 3,)),
-              borderContainer(const SizeTailoredText(
+              const SizeTailoredText(
                 text: text,
                 textStyle: style,
                 maxLines: 5,
+                textAlign: TextAlign.start,
+              ),
+              borderContainer(const Text(text, style: style)),
+              borderContainer(const SizeTailoredText(
+                text: text,
+                textStyle: style,
+                maxLines: 3,
+                textAlign: TextAlign.center,
               ))
             ],
           ),
@@ -54,7 +61,7 @@ class _MyAppState extends State<MyApp> {
 
   Widget borderContainer(Widget child) => Container(
         width: double.infinity,
-        height: 400,
+        height: 200,
         decoration: const BoxDecoration(
             border: Border.fromBorderSide(BorderSide(color: Colors.red))),
         child: child,

@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2024. AQoong(cooldnjsdn@gmail.com) All rights reserved.
  */
+library size_tailored_text;
 
 import 'package:flutter/material.dart';
 
@@ -9,36 +10,34 @@ class SizeTailoredText extends StatefulWidget {
   final double calRefSize; //사이즈 조정 수치
   final TextStyle textStyle;
 
-  final int? maxLines;
+  final int maxLines;
   final Locale? locale;
-  final TextOverflow? overflow;
   final Color? selectionColor;
   final String? semanticsLabel;
-  final bool? softWrap;
+  final bool softWrap;
   final StrutStyle? strutStyle;
   final TextAlign? textAlign;
   final TextDirection? textDirection;
-  final TextScaler? textScaler;
+  final TextScaler textScaler;
   final TextHeightBehavior? textHeightBehavior;
-  final TextWidthBasis? textWidthBasis;
+  final TextWidthBasis textWidthBasis;
 
   const SizeTailoredText({
     super.key,
     required this.text,
     required this.textStyle,
     this.calRefSize = 0.5,
-    this.maxLines,
+    this.maxLines = 1,
     this.textDirection,
     this.textAlign,
     this.semanticsLabel,
     this.selectionColor,
-    this.overflow,
     this.locale,
-    this.softWrap,
+    this.softWrap = true,
     this.strutStyle,
     this.textHeightBehavior,
-    this.textScaler,
-    this.textWidthBasis,
+    this.textScaler = TextScaler.noScaling,
+    this.textWidthBasis = TextWidthBasis.parent,
   });
 
   @override
@@ -47,6 +46,16 @@ class SizeTailoredText extends StatefulWidget {
 
 class _SizeTailoredTextState extends State<SizeTailoredText> {
   double _changedFontSize = 0;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(SizeTailoredText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +79,8 @@ class _SizeTailoredTextState extends State<SizeTailoredText> {
             break;
           }
         }
-        fontSize -= widget.calRefSize;
-
         _changedFontSize = fontSize;
+
         return RichText(
           text: TextSpan(
             children: _buildTextSpans(
@@ -81,6 +89,15 @@ class _SizeTailoredTextState extends State<SizeTailoredText> {
               constraints.maxWidth,
             ),
           ),
+          textAlign: widget.textAlign ?? TextAlign.start,
+          textHeightBehavior: widget.textHeightBehavior,
+          strutStyle: widget.strutStyle,
+          softWrap: widget.softWrap,
+          textWidthBasis: widget.textWidthBasis,
+          textDirection: widget.textDirection,
+          selectionColor: widget.selectionColor,
+          locale: widget.locale,
+          maxLines: widget.maxLines,
         );
       },
     );
@@ -94,14 +111,14 @@ class _SizeTailoredTextState extends State<SizeTailoredText> {
 
   TextPainter _commonTextPainter() => TextPainter(
     text: TextSpan(text: widget.text, style: _commonTextStyle()),
-    maxLines: widget.maxLines ?? 1,
+    maxLines: widget.maxLines,
     textDirection: widget.textDirection ?? TextDirection.ltr,
-    textScaler: widget.textScaler ?? TextScaler.noScaling,
+    textScaler: widget.textScaler,
     locale: widget.locale,
     strutStyle: widget.strutStyle,
     textAlign: widget.textAlign ?? TextAlign.start,
     textHeightBehavior: widget.textHeightBehavior,
-    textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
+    textWidthBasis: widget.textWidthBasis,
   );
 
   List<TextSpan> _buildTextSpans(String text, TextStyle style, double maxWidth) {
