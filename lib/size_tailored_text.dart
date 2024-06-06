@@ -22,8 +22,7 @@ class SizeTailoredText extends StatefulWidget {
   final TextHeightBehavior? textHeightBehavior;
   final TextWidthBasis textWidthBasis;
 
-  const SizeTailoredText({
-    super.key,
+  const SizeTailoredText({Key? key,
     required this.text,
     required this.textStyle,
     this.calRefSize = 0.5,
@@ -38,7 +37,7 @@ class SizeTailoredText extends StatefulWidget {
     this.textHeightBehavior,
     this.textScaler = TextScaler.noScaling,
     this.textWidthBasis = TextWidthBasis.parent,
-  });
+  }) : super(key: key);
 
   @override
   State<SizeTailoredText> createState() => _SizeTailoredTextState();
