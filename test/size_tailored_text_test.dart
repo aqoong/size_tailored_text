@@ -12,7 +12,6 @@ void main() {
       const TextStyle textStyle = TextStyle(
         fontSize: 30,
       );
-      print(text);
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
