@@ -30,6 +30,12 @@ jobs:
       - name: Run Tests
         run: flutter test
 
+      - name: Set up Git user
+        if: success()
+        run: |
+          git config --global user.name "AQoong"
+          git config --global user.email "cooldnjsdn@gmail.com"
+
       - name: Tag the release
         if: success()
         run: |
