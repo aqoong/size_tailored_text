@@ -18,7 +18,7 @@ void main() {
             body: SizeTailoredText(
               text,
               style: textStyle,
-              maxLines: Random().nextInt(10), // 테스트할 위젯을 여기에 넣습니다.
+              maxLines: Random().nextInt(10) + 1
             ),
           ),
         ),

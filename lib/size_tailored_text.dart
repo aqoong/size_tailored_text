@@ -49,7 +49,8 @@ class SizeTailoredText extends StatelessWidget {
     this.textHeightBehavior,
     this.minFontSize = 8,
     this.stepGranularity = 0.5,
-  }) : super(key: key);
+  })  : assert(maxLines > 0, 'maxLines must be greater than 0'),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +97,7 @@ class SizeTailoredText extends StatelessWidget {
       required TextSpan textSpan}) {
     final TextPainter textPainter = TextPainter(
       text: textSpan,
-      maxLines: null,
+      maxLines: maxLines,
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.start,
       textWidthBasis: TextWidthBasis.parent,
