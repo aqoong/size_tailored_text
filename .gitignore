@@ -59,3 +59,5 @@ ios/Flutter/App.framework
 
 # 환경 설정 파일
 *.env
+#github action
+.github/workflows
