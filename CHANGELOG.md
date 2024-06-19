@@ -15,7 +15,7 @@ pre-release version
 
 * Resolving the issue where the textAlign option is not applied.
 
-### planning
+## 0.1.0
 
-* Processing strings that contain newline characters.
-* Compatibility testing for lower Flutter versions
+* Refactor main logic
+* Check overflow in all areas horizontally and vertically
