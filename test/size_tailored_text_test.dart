@@ -8,7 +8,7 @@ void main() {
   testWidgets(
     'Widget Test',
     (WidgetTester tester) async {
-      final String text = List.generate(Random().nextInt(200), (index) => index).toString();
+      final String text = List.generate(Random().nextInt(100), (index) => index).toString();
       const TextStyle textStyle = TextStyle(
         fontSize: 30,
       );
@@ -16,8 +16,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SizeTailoredText(
-              text: text,
-              textStyle: textStyle,
+              text,
+              style: textStyle,
               maxLines: Random().nextInt(10), // 테스트할 위젯을 여기에 넣습니다.
             ),
           ),

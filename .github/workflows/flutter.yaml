@@ -29,3 +29,17 @@ jobs:
 
       - name: Run Tests
         run: flutter test
+
+      - name: Tag the release
+        if: success()
+        run: |
+          VERSION=$(cat pubspec.yaml | grep version: | awk '{print $2}')
+          git tag -a "v$VERSION" -m "Release version $VERSION"
+          git push origin "v$VERSION"
+
+#      - name: Publish to pub.dev
+#        if: success()
+#        run: |
+#          echo "//pub.dev:" > ~/.pub-cache/credentials.json
+#          echo "  token: ${{ secrets.PUB_DEV_TOKEN }}" >> ~/.pub-cache/credentials.json
+#          flutter pub publish --force

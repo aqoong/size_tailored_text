@@ -1,50 +1,40 @@
 /*
  * Copyright (c) 2024. AQoong(cooldnjsdn@gmail.com) All rights reserved.
  */
-library size_tailored_text;
 
 import 'package:flutter/material.dart';
 
-class SizeTailoredText extends StatelessWidget {
-  /// If the [style] argument is null, the text will use the style from the
-  /// closest enclosing [DefaultTextStyle].
-  ///
+class SizeTailored extends StatelessWidget {
   final String text;
-
-  ///Size([width], [height]) can be adjusted independently by setting the Widget area.
-  ///If null, it matches the size of the parent area.
   final double? width;
   final double? height;
-
   final TextStyle? style;
-  final int maxLines;
+  final int? maxLines;
   final TextAlign? textAlign;
   final TextDirection? textDirection;
   final Locale? locale;
+  final bool? softWrap;
   final double textScaleFactor;
+  final TextOverflow? textOverflow;
   final TextScaler textScaler;
+  final String? semanticsLabel;
   final TextWidthBasis? textWidthBasis;
   final TextHeightBehavior? textHeightBehavior;
-
-  /// [stepGranularity] argument is The coefficient that controls the fontSize.
-  /// The smaller the value, the more sophisticated it works.
   final double stepGranularity;
-
-  /// You can set the minimum fontSize.
-  /// If it does not get smaller than [minFontSize]
-  /// If overflow occurs, the letters are no longer visible.
   final double minFontSize;
 
-  const SizeTailoredText(
+  const SizeTailored(
     this.text, {
     Key? key,
     this.width,
     this.height,
     this.style,
-    this.maxLines = 1,
+    this.maxLines,
     this.textAlign,
     this.textDirection,
     this.locale,
+    this.softWrap,
+    this.textOverflow,
     @Deprecated(
       'Use textScaler instead. '
       'Use of textScaleFactor was deprecated in preparation for the upcoming nonlinear text scaling support. '
@@ -52,6 +42,7 @@ class SizeTailoredText extends StatelessWidget {
     )
     this.textScaleFactor = 1.0,
     this.textScaler = TextScaler.noScaling,
+    this.semanticsLabel,
     this.textWidthBasis,
     this.textHeightBehavior,
     this.minFontSize = 8,
@@ -69,12 +60,21 @@ class SizeTailoredText extends StatelessWidget {
       late TextSpan tempTextSpan;
 
       while (fontSize - stepGranularity >= minFontSize) {
-        tempTextSpan = TextSpan(
-          children: _buildTextSpans(
-              text: text,
-              style: effectiveStyle.copyWith(fontSize: fontSize),
-              maxWidth: maxWidth),
+        final textPainter = TextPainter(
+          text: TextSpan(
+              text: text, style: effectiveStyle.copyWith(fontSize: fontSize)),
+          maxLines: maxLines,
+          textAlign: textAlign ?? TextAlign.start,
+          textDirection: textDirection ?? TextDirection.ltr,
+          locale: locale,
+          textScaleFactor: textScaleFactor,
+          textScaler: textScaler,
+          textWidthBasis: TextWidthBasis.parent,
         );
+
+        tempTextSpan = TextSpan(
+            children: _buildTextSpans(
+                text: text, textPainter: textPainter, maxWidth: maxWidth));
 
         if (_checkOverflow(
             maxWidth: maxWidth, maxHeight: maxHeight, textSpan: tempTextSpan)) {
@@ -86,10 +86,12 @@ class SizeTailoredText extends StatelessWidget {
 
       return RichText(
         text: tempTextSpan,
+        overflow: textOverflow ?? TextOverflow.clip,
         textScaleFactor: textScaleFactor,
         textScaler: textScaler,
         locale: locale,
         maxLines: maxLines,
+        softWrap: true,
         textAlign: textAlign ?? TextAlign.start,
         textWidthBasis: textWidthBasis ?? TextWidthBasis.parent,
         textDirection: textDirection,
@@ -112,36 +114,19 @@ class SizeTailoredText extends StatelessWidget {
 
     textPainter.layout(maxWidth: maxWidth);
 
-    final lineMetrics = textPainter.computeLineMetrics();
-    final lineHeight = lineMetrics.isNotEmpty ? lineMetrics.first.height : 0;
-
-    bool isOverflowing = textPainter.height > maxHeight ||
-        textPainter.maxIntrinsicWidth > maxWidth ||
-        textPainter.didExceedMaxLines ||
-        lineHeight * maxLines < textPainter.height;
-
+    bool isOverflowing =
+        textPainter.size.height > maxHeight || textPainter.didExceedMaxLines;
     return isOverflowing;
   }
 
   List<TextSpan> _buildTextSpans(
       {required String text,
-      required TextStyle style,
+      required TextPainter textPainter,
       required double maxWidth}) {
     final words = text.split(' '); // 공백으로 분리된 단어 리스트
     final spans = <TextSpan>[];
 
     String currentLine = '';
-
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      maxLines: maxLines,
-      textAlign: textAlign ?? TextAlign.start,
-      textDirection: textDirection ?? TextDirection.ltr,
-      locale: locale,
-      textScaleFactor: textScaleFactor,
-      textScaler: textScaler,
-      textWidthBasis: TextWidthBasis.parent,
-    );
 
     for (var word in words) {
       String testLine = currentLine.isEmpty ? word : '$currentLine $word';
