@@ -20,13 +20,12 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    const text = '안녕하세요. 이것은 긴 문자열 테스트입니다. Hello. This is Long String test. Hello. This is Long String test. Hello. This is Long String test.';
+    const text = '안녕하세요.dfdsafdsafsd dsff next time. plugin example app test Nice Weather in Earth. 입니다!';
     const style = TextStyle(
-      fontSize: 210,
+      fontSize: 100,
       overflow: TextOverflow.fade,
       color: Colors.black,
       fontWeight: FontWeight.w800,
-      height: 1.2,
     );
 
     return MaterialApp(
@@ -34,24 +33,35 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: SingleChildScrollView(
+        body: const SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizeTailoredText(
-                text: text,
-                textStyle: style,
+              SizeTailoredText(
+                text,
+                width: 200,
+                height: 200,
                 maxLines: 5,
-                textAlign: TextAlign.start,
+                minFontSize: 1,
+                textAlign: TextAlign.left,
+                style: style,
               ),
-              borderContainer(const Text(text, style: style)),
-              borderContainer(const SizeTailoredText(
-                text: text,
-                textStyle: style,
-                maxLines: 3,
-                textAlign: TextAlign.center,
-              ))
+              Text(
+                text,
+                maxLines: 5,
+                style: style,
+
+              ),
+              // borderContainer(const Text(text, style: style)),
+              // SizeTailoredText(
+              //   text: text,
+              //   textStyle: style,
+              //   maxWidth: 100,
+              //   maxHeight: 100,
+              //   maxLines: 6,
+              //   textAlign: TextAlign.start,
+              // )
             ],
           ),
         ),

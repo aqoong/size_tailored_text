@@ -29,7 +29,7 @@ android {
         namespace = "com.aqoong.plugin.ui.sizetailoredtext.size_tailored_text"
     }
 
-    compileSdk = 34
+    compileSdk = 33
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
