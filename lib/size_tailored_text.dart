@@ -21,7 +21,6 @@ class SizeTailoredText extends StatelessWidget {
   final TextAlign? textAlign;
   final TextDirection? textDirection;
   final Locale? locale;
-  final double textScaleFactor;
   final TextScaler textScaler;
   final TextWidthBasis? textWidthBasis;
   final TextHeightBehavior? textHeightBehavior;
@@ -45,18 +44,13 @@ class SizeTailoredText extends StatelessWidget {
     this.textAlign,
     this.textDirection,
     this.locale,
-    @Deprecated(
-      'Use textScaler instead. '
-      'Use of textScaleFactor was deprecated in preparation for the upcoming nonlinear text scaling support. '
-      'This feature was deprecated after v3.12.0-2.0.pre.',
-    )
-    this.textScaleFactor = 1.0,
     this.textScaler = TextScaler.noScaling,
     this.textWidthBasis,
     this.textHeightBehavior,
     this.minFontSize = 8,
     this.stepGranularity = 0.5,
-  }) : super(key: key);
+  })  : assert(maxLines > 0, 'maxLines must be greater than 0'),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +80,6 @@ class SizeTailoredText extends StatelessWidget {
 
       return RichText(
         text: tempTextSpan,
-        textScaleFactor: textScaleFactor,
         textScaler: textScaler,
         locale: locale,
         maxLines: maxLines,
@@ -104,7 +97,7 @@ class SizeTailoredText extends StatelessWidget {
       required TextSpan textSpan}) {
     final TextPainter textPainter = TextPainter(
       text: textSpan,
-      maxLines: null,
+      maxLines: maxLines,
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.start,
       textWidthBasis: TextWidthBasis.parent,
@@ -138,7 +131,6 @@ class SizeTailoredText extends StatelessWidget {
       textAlign: textAlign ?? TextAlign.start,
       textDirection: textDirection ?? TextDirection.ltr,
       locale: locale,
-      textScaleFactor: textScaleFactor,
       textScaler: textScaler,
       textWidthBasis: TextWidthBasis.parent,
     );
