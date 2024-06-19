@@ -30,18 +30,6 @@ jobs:
       - name: Run Tests
         run: flutter test
 
-      - name: Set up Git user
-        if: success()
-        run: |
-          git config --global user.name "AQoong"
-          git config --global user.email "cooldnjsdn@gmail.com"
-
-      - name: Tag the release
-        if: success()
-        run: |
-          VERSION=$(cat pubspec.yaml | grep version: | awk '{print $2}')
-          git tag -a "v$VERSION" -m "Release version $VERSION"
-          git push origin "v$VERSION"
 
 #      - name: Publish to pub.dev
 #        if: success()
