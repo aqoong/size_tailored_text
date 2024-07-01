@@ -1,6 +1,6 @@
 name: size_tailored_text
 description: "Size the text to the size of the parent widget."
-version: 0.1.0
+version: 1.0.0
 homepage: https://github.com/aqoong/size_tailored_text
 
 environment:

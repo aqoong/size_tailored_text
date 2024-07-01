@@ -47,33 +47,20 @@ class _MyAppState extends State<MyApp> {
                 textAlign: TextAlign.left,
                 style: style,
               ),
-              Text(
-                text,
-                maxLines: 5,
-                style: style,
-
-              ),
-              // borderContainer(const Text(text, style: style)),
-              // SizeTailoredText(
-              //   text: text,
-              //   textStyle: style,
-              //   maxWidth: 100,
-              //   maxHeight: 100,
-              //   maxLines: 6,
-              //   textAlign: TextAlign.start,
-              // )
+              SizedBox(
+                width: 200,
+                height: 200,
+                child: Text(
+                  text,
+                  maxLines: 5,
+                  textAlign: TextAlign.left,
+                  style: style,
+                ),
+              )
             ],
           ),
         ),
       ),
     );
   }
-
-  Widget borderContainer(Widget child) => Container(
-        width: double.infinity,
-        height: 200,
-        decoration: const BoxDecoration(
-            border: Border.fromBorderSide(BorderSide(color: Colors.red))),
-        child: child,
-      );
 }

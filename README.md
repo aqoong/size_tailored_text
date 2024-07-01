@@ -11,6 +11,7 @@ Size the text to the size of the parent widget.
 It's similar to using a typical Text Widget.  
 Inputable arguments are left open the same as the arguments in Text Widget.
 ~~~
+
 final text = "Strings Strings...";
 final style = TextStyle(
     ...
@@ -18,12 +19,71 @@ final style = TextStyle(
     color: Colors.balck,
     ...
 );
-const SizeTailoredText(
-    text: text,
-    textStyle: style,
+SizeTailoredText(
+    ...
+    text,
+    width: 200,
+    height: 200,
+    style: style,
     maxLines: 5,
-);
+    minFontSize: 1,
+    textAlign: TextAlign.left,
+    ...
+),
+
 ~~~
+
+## Example
+
+<table style="border-collapse: collapse;border: 1px solid #dddddd;">
+    <tr>
+        <td>
+            <img alt="" src="https://aqoong.github.io/readme-assets/size-tailored-text/stt_no_sized.png" width="350"/>
+        </td>
+        <td>
+            <pre><code>
+SizeTailoredText(
+    text,
+    maxLines: 5,
+    minFontSize: 1,
+    textAlign: TextAlign.left,
+    style: style,
+);
+Text(
+    text,
+    maxLines: 5,
+    textAlign: TextAlign.left,
+style: style,
+);</code></pre>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img alt="" src="https://aqoong.github.io/readme-assets/size-tailored-text/stt_sized.png" width="350"/>
+        </td>
+        <td>
+            <pre><code>
+SizeTailoredText(text,
+    width: 200,
+    height: 200,
+    maxLines: 5,
+    minFontSize: 1,
+    textAlign: TextAlign.left,
+    style: style,
+);
+SizedBox(
+    width: 200,
+    height: 200,
+    child: Text(
+        text,
+        maxLines: 5,
+        textAlign: TextAlign.left,
+        style: style,
+    ),
+);</code></pre>
+        </td>
+    </tr>
+</table>
 
 ## License
 

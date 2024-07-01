@@ -19,3 +19,7 @@ pre-release version
 
 * Refactor main logic
 * Check overflow in all areas horizontally and vertically
+
+## 1.0.0
+
+* Update "How to Use" in README.md
