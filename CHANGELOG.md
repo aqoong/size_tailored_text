@@ -23,3 +23,7 @@ pre-release version
 ## 1.0.0
 
 * Update "How to Use" in README.md
+
+## 1.0.1
+
+* Increased the scope of supported versions.
