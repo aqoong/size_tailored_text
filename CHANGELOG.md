@@ -27,3 +27,7 @@ pre-release version
 ## 1.0.1
 
 * Increased the scope of supported versions.
+
+## 1.0.3
+
+* Expand and release the supported platforms for reasons that do not use the Platform SDK.

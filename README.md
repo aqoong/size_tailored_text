@@ -1,6 +1,6 @@
 # size_tailored_text
 
-Size the text to the size of the parent widget.
+This text widget automatically adjusts the font size to prevent overflow error messages by ensuring it does not exceed the given space.
 
 ### Feature
 * No matter how large the FontSize is, **reset the fontSize** based on the width of the parent widget and the set maxLines.
