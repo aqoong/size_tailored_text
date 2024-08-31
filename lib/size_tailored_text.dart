@@ -36,7 +36,7 @@ class SizeTailoredText extends StatelessWidget {
 
   const SizeTailoredText(
     this.text, {
-    Key? key,
+    super.key,
     this.width,
     this.height,
     this.style,
@@ -49,11 +49,15 @@ class SizeTailoredText extends StatelessWidget {
     this.textHeightBehavior,
     this.minFontSize = 8,
     this.stepGranularity = 0.5,
-  })  : assert(maxLines > 0, 'maxLines must be greater than 0'),
-        super(key: key);
+  })  : assert(maxLines > 0, 'maxLines must be greater than 0');
 
   @override
   Widget build(BuildContext context) {
+    String clearedText = text;
+    if (maxLines == 1 && text.contains('\n')) {
+      clearedText = text.replaceAll('\n', ' ');
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       final maxWidth = width ?? constraints.maxWidth;
       final maxHeight = height ?? constraints.maxHeight;
@@ -65,7 +69,7 @@ class SizeTailoredText extends StatelessWidget {
       while (fontSize - stepGranularity >= minFontSize) {
         tempTextSpan = TextSpan(
           children: _buildTextSpans(
-              text: text,
+              text: clearedText,
               style: effectiveStyle.copyWith(fontSize: fontSize),
               maxWidth: maxWidth),
         );
