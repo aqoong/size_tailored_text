@@ -33,5 +33,7 @@ pre-release version
 * Expand and release the supported platforms for reasons that do not use the Platform SDK.
 
 ## 1.0.4
-
 * Modified to replace all newline characters (\n) with spaces in the text when maxLines is set to 1, ensuring the text is displayed on a single line.
+
+## 1.0.5
+* Clean the file path & dart formatted

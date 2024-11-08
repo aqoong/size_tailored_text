@@ -1,11 +1,10 @@
 name: size_tailored_text
 description: "This text widget automatically adjusts the font size to prevent overflow error messages by ensuring it does not exceed the given space."
-version: 1.0.4
+version: 1.0.5
 homepage: https://github.com/aqoong/size_tailored_text
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
-  flutter: '>=3.16.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:

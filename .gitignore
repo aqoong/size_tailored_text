@@ -38,7 +38,6 @@ migrate_working_dir/
 .pub/
 build/
 
-
 # iOS 관련
 ios/Pods/
 ios/Flutter/Flutter.framework/
@@ -61,3 +60,6 @@ ios/Flutter/App.framework
 *.env
 #github action
 .github/workflows
+
+# FVM Version Cache
+.fvm/
