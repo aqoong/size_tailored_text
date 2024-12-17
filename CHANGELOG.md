@@ -37,3 +37,6 @@ pre-release version
 
 ## 1.0.5
 * Clean the file path & dart formatted
+
+## 1.0.6
+* Improved the stability of the temporary variable used for size adjustment.

@@ -1,6 +1,6 @@
 name: size_tailored_text
 description: "This text widget automatically adjusts the font size to prevent overflow error messages by ensuring it does not exceed the given space."
-version: 1.0.5
+version: 1.0.6
 homepage: https://github.com/aqoong/size_tailored_text
 
 environment:

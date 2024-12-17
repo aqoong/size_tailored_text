@@ -63,10 +63,13 @@ class SizeTailoredTextWidget extends StatelessWidget {
       final TextStyle effectiveStyle =
           style ?? DefaultTextStyle.of(context).style;
       double fontSize = effectiveStyle.fontSize!;
-      late TextSpan tempTextSpan;
+      TextSpan tempTextSpan = TextSpan(
+        text: clearedText,
+        style: effectiveStyle.copyWith(fontSize: fontSize),
+      );;
 
       while (fontSize - stepGranularity >= minFontSize) {
-        tempTextSpan = TextSpan(
+        final newTextSpan = TextSpan(
           children: _buildTextSpans(
               text: clearedText,
               style: effectiveStyle.copyWith(fontSize: fontSize),
@@ -74,9 +77,10 @@ class SizeTailoredTextWidget extends StatelessWidget {
         );
 
         if (_checkOverflow(
-            maxWidth: maxWidth, maxHeight: maxHeight, textSpan: tempTextSpan)) {
+            maxWidth: maxWidth, maxHeight: maxHeight, textSpan: newTextSpan)) {
           fontSize -= stepGranularity;
         } else {
+          tempTextSpan = newTextSpan;
           break;
         }
       }
