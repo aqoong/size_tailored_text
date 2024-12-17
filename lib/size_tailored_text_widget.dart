@@ -66,7 +66,7 @@ class SizeTailoredTextWidget extends StatelessWidget {
       TextSpan tempTextSpan = TextSpan(
         text: clearedText,
         style: effectiveStyle.copyWith(fontSize: fontSize),
-      );;
+      );
 
       while (fontSize - stepGranularity >= minFontSize) {
         final newTextSpan = TextSpan(
