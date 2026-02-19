@@ -1,0 +1,63 @@
+name: Release and Publish
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    if: github.repository_owner == 'aqoong'
+    name: Release & Publish to pub.dev
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Get current package version
+        id: package_version
+        run: echo "VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')" >> $GITHUB_ENV
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          TAG_EXISTS=$(git tag -l "v${{ env.VERSION }}")
+          if [[ -z "$TAG_EXISTS" ]]; then
+            echo "NEW_VERSION=true" >> $GITHUB_ENV
+          else
+            echo "NEW_VERSION=false" >> $GITHUB_ENV
+          fi
+
+      - name: Extract changelog for this version
+        id: changelog
+        if: env.NEW_VERSION == 'true'
+        run: |
+          VERSION=${{ env.VERSION }}
+          CHANGELOG=$(awk "/## $VERSION/{flag=1; next} /^## /{flag=0} flag" CHANGELOG.md)
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create Git tag
+        if: env.NEW_VERSION == 'true'
+        run: |
+          git tag "v${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+
+      - name: Create GitHub Release
+        if: env.NEW_VERSION == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body: |
+            ${{ env.CHANGELOG }}
+          draft: false
+          prerelease: false
