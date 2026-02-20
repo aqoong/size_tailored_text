@@ -54,3 +54,6 @@ pre-release version
 * **Infinite constraints:** When `width` or `height` is `double.infinity`, the widget now uses `MediaQuery.sizeOf(context).width` or `height` as an upper bound to avoid layout issues.
 * **Performance:** Converted to `StatefulWidget` and cache the last computed font size (`_cachedFontSize`) to use as the starting point on the next build, reducing repeated layout calculations. Removed unused cache fields (`_lastMaxWidth`, `_lastMaxHeight`, `_lastText`).
 * **Maximum font:** After finding a fitting size from cache, the widget now tries increasing the font step-by-step so the largest fitting font is used when constraints are unchanged.
+
+## 1.0.8
+* README.md update

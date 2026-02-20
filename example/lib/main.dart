@@ -45,7 +45,6 @@ class _MyAppState extends State<MyApp> {
                 height: 200,
                 maxLines: 5,
                 minFontSize: 1,
-                textAlign: TextAlign.end,
                 style: style,
               ),
               SizedBox(
@@ -54,8 +53,8 @@ class _MyAppState extends State<MyApp> {
                 child: Text(
                   text,
                   maxLines: 5,
-                  textAlign: TextAlign.end,
                   style: style,
+                  overflow: TextOverflow.fade,
                 ),
               )
             ],
