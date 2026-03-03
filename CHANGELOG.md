@@ -57,3 +57,8 @@ pre-release version
 
 ## 1.0.8
 * README.md update
+
+## 1.0.9
+
+### Changes
+* **Explicit newlines:** When `maxLines` > 1, newline characters (`\n`, `\r\n`) in the text are now honored as line breaks. The widget splits the string into paragraphs by newlines, word-wraps each paragraph to the given width, and then adjusts font size so the result fits. When `maxLines` is 1, newlines are still replaced with spaces so the text stays on a single line.

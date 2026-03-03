@@ -6,8 +6,10 @@ A Flutter text widget that **automatically adjusts font size** so that text fits
 
 - **Automatic font scaling**  
   Regardless of how large `style.fontSize` is, the widget shrinks it so the text fits within **width**, **height**, and **maxLines**.
+- **Explicit newlines**  
+  When `maxLines` > 1, newline characters (`\n`, `\r\n`) in the string are honored as line breaks. Font size is then adjusted so that the resulting lines fit within the given area.
 - **Word-based line breaks**  
-  Text is split on spaces so lines wrap at word boundaries and words are not broken in the middle.
+  Within each line (or paragraph, after applying explicit newlines), text is split on spaces so lines wrap at word boundaries and words are not broken in the middle.
 - **Text-like API**  
   Most arguments from `Text` are supported: `style`, `textAlign`, `textDirection`, `maxLines`, `locale`, etc.
 - **Infinite constraints**  
@@ -76,7 +78,7 @@ For details on the same arguments as `Text`, see the Flutter [Text](https://api.
 2. **Find font size**  
    Starts from `style.fontSize` (or a cached value from the previous build), then uses `TextPainter` to check for overflow and steps down by `stepGranularity` until the text fits within the area and `maxLines`.
 3. **Line breaking**  
-   Splits on whitespace and wraps when a line would exceed `width`.
+   The text is split on newlines (`\n`, `\r\n`) into paragraphs. Each paragraph is then word-wrapped: splits on whitespace and wraps when a line would exceed `width`. When `maxLines` is 1, newlines in the string are replaced with spaces so everything stays on one line.
 4. **Caching**  
    The chosen font size is stored in state and reused as the starting point on the next build to reduce repeated layout work.
 

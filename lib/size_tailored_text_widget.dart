@@ -184,15 +184,14 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
     return isOverflowing;
   }
 
+  /// Builds [TextSpan]s that honor explicit newlines (\n, \r\n) and then
+  /// word-wrap each paragraph to [maxWidth].
   List<TextSpan> _buildTextSpans(
       {required String text,
       required TextStyle style,
       required double maxWidth}) {
-    final words = text.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
-    if (words.isEmpty) return [TextSpan(text: text, style: style)];
+    final paragraphs = text.split(RegExp(r'\r?\n'));
     final spans = <TextSpan>[];
-
-    String currentLine = '';
 
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
@@ -204,25 +203,44 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
       textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
     );
 
-    for (var word in words) {
-      String testLine = currentLine.isEmpty ? word : '$currentLine $word';
-      textPainter.text = TextSpan(text: testLine, style: style);
-      textPainter.layout(maxWidth: maxWidth);
+    for (var p = 0; p < paragraphs.length; p++) {
+      final paragraph = paragraphs[p];
+      final words = paragraph
+          .split(RegExp(r'\s+'))
+          .where((s) => s.isNotEmpty)
+          .toList();
 
-      if (textPainter.didExceedMaxLines ||
-          textPainter.maxIntrinsicWidth > maxWidth) {
-        if (currentLine.isNotEmpty) {
-          spans.add(TextSpan(text: currentLine, style: style));
+      if (words.isEmpty) {
+        if (p < paragraphs.length - 1) {
           spans.add(const TextSpan(text: '\n'));
         }
-        currentLine = word;
-      } else {
-        currentLine = testLine;
+        continue;
       }
-    }
 
-    if (currentLine.isNotEmpty) {
-      spans.add(TextSpan(text: currentLine, style: style));
+      String currentLine = '';
+      for (var word in words) {
+        final testLine =
+            currentLine.isEmpty ? word : '$currentLine $word';
+        textPainter.text = TextSpan(text: testLine, style: style);
+        textPainter.layout(maxWidth: maxWidth);
+
+        if (textPainter.didExceedMaxLines ||
+            textPainter.maxIntrinsicWidth > maxWidth) {
+          if (currentLine.isNotEmpty) {
+            spans.add(TextSpan(text: currentLine, style: style));
+            spans.add(const TextSpan(text: '\n'));
+          }
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine.isNotEmpty) {
+        spans.add(TextSpan(text: currentLine, style: style));
+      }
+      if (p < paragraphs.length - 1) {
+        spans.add(const TextSpan(text: '\n'));
+      }
     }
 
     return spans;

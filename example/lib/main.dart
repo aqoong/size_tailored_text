@@ -21,9 +21,9 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     const text =
-        '안녕하세요.dfdsafdsafsd dsff next time.\nplugin example app test Nice Weather in Earth. 입니다!\nAnother point is empty empty....확인용입니다.';
+        '안녕하세요.dfdsafdsafsd dsff next time.\nplugin example app test Nice Weather in Earth. 입니다!\nAnother point is empty empty....확인용입니다.\n';
     const style = TextStyle(
-      fontSize: 50,
+      fontSize: 10, 
       overflow: TextOverflow.fade,
       color: Colors.black,
       fontWeight: FontWeight.w800,
@@ -41,8 +41,7 @@ class _MyAppState extends State<MyApp> {
             children: [
               SizeTailoredTextWidget(
                 text,
-                width: 200,
-                height: 200,
+
                 maxLines: 5,
                 minFontSize: 1,
                 style: style,
