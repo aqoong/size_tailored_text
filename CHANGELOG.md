@@ -62,3 +62,18 @@ pre-release version
 
 ### Changes
 * **Explicit newlines:** When `maxLines` > 1, newline characters (`\n`, `\r\n`) in the text are now honored as line breaks. The widget splits the string into paragraphs by newlines, word-wraps each paragraph to the given width, and then adjusts font size so the result fits. When `maxLines` is 1, newlines are still replaced with spaces so the text stays on a single line.
+
+## 1.1.0
+
+### ⚠️ Breaking change (important)
+
+* **`width` and `height` parameters are removed.**  
+  The widget no longer accepts explicit `width` or `height`. It always uses the **parent’s layout constraints** (from `LayoutBuilder`). To limit the area, wrap `SizeTailoredTextWidget` in a widget that provides bounded constraints (e.g. `SizedBox`, `Container`, `ConstrainedBox`). Unbounded constraints (`double.infinity`) are still capped using `MediaQuery` size.
+
+### Added
+* **`overflow`** (`TextOverflow`, default `TextOverflow.ellipsis`): When the text still does not fit at `minFontSize`, the rendered `RichText` uses this to show ellipsis, fade, clip, or visible overflow.
+* **`breakLongWords`** (bool, default `true`): When a word has no spaces and is wider than the available width, the widget can split it at character boundaries to fit. Set to `false` to keep long words unsplit (overflow is then handled by `overflow`).
+
+### Changes
+* **Assertions:** `stepGranularity` and `minFontSize` must be greater than zero.
+* **Overflow:** When text does not fit at `minFontSize`, the widget renders at `minFontSize` and relies on `RichText`'s `overflow` for the final appearance.

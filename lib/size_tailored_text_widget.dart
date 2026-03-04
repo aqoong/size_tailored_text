@@ -3,18 +3,10 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:characters/characters.dart';
 
 class SizeTailoredTextWidget extends StatefulWidget {
-  /// If the [style] argument is null, the text will use the style from the
-  /// closest enclosing [DefaultTextStyle].
-  ///
   final String text;
-
-  ///Size([width], [height]) can be adjusted independently by setting the Widget area.
-  ///If null, it matches the size of the parent area.
-  ///[double.infinity] is replaced with the current MediaQuery size (width/height).
-  final double? width;
-  final double? height;
 
   final TextStyle? style;
   final int maxLines;
@@ -25,38 +17,39 @@ class SizeTailoredTextWidget extends StatefulWidget {
   final TextWidthBasis? textWidthBasis;
   final TextHeightBehavior? textHeightBehavior;
 
-  /// [stepGranularity] argument is The coefficient that controls the fontSize.
-  /// The smaller the value, the more sophisticated it works.
-  final double stepGranularity;
+  final TextOverflow overflow;
 
-  /// You can set the minimum fontSize.
-  /// If it does not get smaller than [minFontSize]
-  /// If overflow occurs, the letters are no longer visible.
+  /// If true, long unbroken words can be split at character level
+  /// (only used when maxLines > 1 in this implementation).
+  final bool breakLongWords;
+
+  final double stepGranularity;
   final double minFontSize;
 
   const SizeTailoredTextWidget(
-    this.text, {
-    super.key,
-    this.width,
-    this.height,
-    this.style,
-    this.maxLines = 1,
-    this.textAlign,
-    this.textDirection,
-    this.locale,
-    this.textScaler = TextScaler.noScaling,
-    this.textWidthBasis,
-    this.textHeightBehavior,
-    this.minFontSize = 8,
-    this.stepGranularity = 0.5,
-  }) : assert(maxLines > 0, 'maxLines must be greater than 0');
+      this.text, {
+        super.key,
+        this.style,
+        this.maxLines = 1,
+        this.textAlign,
+        this.textDirection,
+        this.locale,
+        this.textScaler = TextScaler.noScaling,
+        this.textWidthBasis,
+        this.textHeightBehavior,
+        this.overflow = TextOverflow.ellipsis,
+        this.breakLongWords = true,
+        this.minFontSize = 8,
+        this.stepGranularity = 0.5,
+      })  : assert(maxLines > 0, 'maxLines must be greater than 0'),
+        assert(stepGranularity > 0, 'stepGranularity must be greater than 0'),
+        assert(minFontSize > 0, 'minFontSize must be greater than 0');
 
   @override
   State<SizeTailoredTextWidget> createState() => _SizeTailoredTextWidgetState();
 }
 
 class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
-  /// 다음 [build]에서 폰트 탐색 시작점으로 사용해 재계산 횟수를 줄임.
   double? _cachedFontSize;
 
   @override
@@ -66,103 +59,126 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
       clearedText = widget.text.replaceAll('\n', ' ');
     }
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final rawMaxWidth = widget.width ?? constraints.maxWidth;
-      final rawMaxHeight = widget.height ?? constraints.maxHeight;
-      final mediaSize = MediaQuery.sizeOf(context);
-      final maxWidth = rawMaxWidth.isFinite ? rawMaxWidth : mediaSize.width;
-      final maxHeight = rawMaxHeight.isFinite ? rawMaxHeight : mediaSize.height;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final rawMaxWidth = constraints.maxWidth;
+        final rawMaxHeight = constraints.maxHeight;
+        final mediaSize = MediaQuery.sizeOf(context);
+        final maxWidth = rawMaxWidth.isFinite ? rawMaxWidth : mediaSize.width;
+        final maxHeight = rawMaxHeight.isFinite ? rawMaxHeight : mediaSize.height;
 
-      final TextStyle effectiveStyle =
-          widget.style ?? DefaultTextStyle.of(context).style;
-      final double initialStyleFontSize = effectiveStyle.fontSize ?? 14.0;
+        final effectiveStyle = widget.style ?? DefaultTextStyle.of(context).style;
+        final initialStyleFontSize = effectiveStyle.fontSize ?? 14.0;
 
-      // 이전 빌드에서 찾은 폰트가 있으면 그 값을 시작점으로 사용해 재계산 횟수 감소
-      double fontSize = _cachedFontSize != null
-          ? _cachedFontSize!.clamp(widget.minFontSize, initialStyleFontSize)
-          : initialStyleFontSize;
+        double fontSize = _cachedFontSize != null
+            ? _cachedFontSize!.clamp(widget.minFontSize, initialStyleFontSize)
+            : initialStyleFontSize;
 
-      TextSpan tempTextSpan = TextSpan(
-        text: clearedText,
-        style: effectiveStyle.copyWith(fontSize: fontSize),
-      );
-
-      bool foundFit = false;
-      while (fontSize >= widget.minFontSize) {
-        final newTextSpan = TextSpan(
-          children: _buildTextSpans(
-              text: clearedText,
-              style: effectiveStyle.copyWith(fontSize: fontSize),
-              maxWidth: maxWidth),
+        TextSpan tempTextSpan = TextSpan(
+          text: clearedText,
+          style: effectiveStyle.copyWith(fontSize: fontSize),
         );
 
-        if (_checkOverflow(
+        bool foundFit = false;
+
+        while (fontSize >= widget.minFontSize) {
+          final newTextSpan = _buildSpanForMeasureAndRender(
+            text: clearedText,
+            style: effectiveStyle.copyWith(fontSize: fontSize),
+            maxWidth: maxWidth,
+          );
+
+          if (_checkOverflow(
             maxWidth: maxWidth,
             maxHeight: maxHeight,
-            textSpan: newTextSpan)) {
-          fontSize -= widget.stepGranularity;
-        } else {
-          tempTextSpan = newTextSpan;
-          foundFit = true;
-          break;
-        }
-      }
-
-      // 캐시 히트 후 여유가 있으면 한 단계씩 올려 최대 허용 폰트로 맞춤
-      if (foundFit && fontSize < initialStyleFontSize) {
-        double tryFontSize = fontSize + widget.stepGranularity;
-        while (tryFontSize <= initialStyleFontSize) {
-          final trySpan = TextSpan(
-            children: _buildTextSpans(
-                text: clearedText,
-                style: effectiveStyle.copyWith(fontSize: tryFontSize),
-                maxWidth: maxWidth),
-          );
-          if (_checkOverflow(
-              maxWidth: maxWidth,
-              maxHeight: maxHeight,
-              textSpan: trySpan)) {
+            textSpan: newTextSpan,
+          )) {
+            fontSize -= widget.stepGranularity;
+          } else {
+            tempTextSpan = newTextSpan;
+            foundFit = true;
             break;
           }
-          fontSize = tryFontSize;
-          tempTextSpan = trySpan;
-          tryFontSize += widget.stepGranularity;
         }
-      }
 
-      // 루프가 오버플로우 상태로 끝나면, 최소 폰트로 줄바꿈만 적용해 표시
-      if (!foundFit && fontSize < initialStyleFontSize) {
-        tempTextSpan = TextSpan(
-          children: _buildTextSpans(
+        if (foundFit && fontSize < initialStyleFontSize) {
+          double tryFontSize = fontSize + widget.stepGranularity;
+          while (tryFontSize <= initialStyleFontSize) {
+            final trySpan = _buildSpanForMeasureAndRender(
               text: clearedText,
-              style: effectiveStyle.copyWith(fontSize: widget.minFontSize),
-              maxWidth: maxWidth),
+              style: effectiveStyle.copyWith(fontSize: tryFontSize),
+              maxWidth: maxWidth,
+            );
+
+            if (_checkOverflow(
+              maxWidth: maxWidth,
+              maxHeight: maxHeight,
+              textSpan: trySpan,
+            )) {
+              break;
+            }
+            fontSize = tryFontSize;
+            tempTextSpan = trySpan;
+            tryFontSize += widget.stepGranularity;
+          }
+        }
+
+        if (!foundFit) {
+          fontSize = widget.minFontSize;
+          tempTextSpan = _buildSpanForMeasureAndRender(
+            text: clearedText,
+            style: effectiveStyle.copyWith(fontSize: fontSize),
+            maxWidth: maxWidth,
+          );
+        }
+
+        _cachedFontSize = fontSize;
+
+        return RichText(
+          text: tempTextSpan,
+          overflow: widget.overflow,
+          maxLines: widget.maxLines,
+          textScaler: widget.textScaler,
+          locale: widget.locale,
+          textAlign: widget.textAlign ?? TextAlign.start,
+          textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
+          textDirection: widget.textDirection,
+          textHeightBehavior: widget.textHeightBehavior,
+          softWrap: widget.maxLines > 1,
         );
-        fontSize = widget.minFontSize;
-      }
-
-      _cachedFontSize = fontSize;
-
-      return RichText(
-        text: tempTextSpan,
-        textScaler: widget.textScaler,
-        locale: widget.locale,
-        maxLines: widget.maxLines,
-        textAlign: widget.textAlign ?? TextAlign.start,
-        textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
-        textDirection: widget.textDirection,
-        textHeightBehavior: widget.textHeightBehavior,
-      );
-    });
+      },
+    );
   }
 
-  bool _checkOverflow(
-      {required double maxWidth,
-      required double maxHeight,
-      required TextSpan textSpan}) {
-    final TextPainter textPainter = TextPainter(
+  /// maxLines==1: 절대 '\n'을 삽입하지 않는 단일 TextSpan을 반환
+  /// maxLines>1: 기존처럼 줄바꿈 스팬을 만들되, 필요시 긴 단어를 문자 단위로 분해
+  TextSpan _buildSpanForMeasureAndRender({
+    required String text,
+    required TextStyle style,
+    required double maxWidth,
+  }) {
+    if (widget.maxLines == 1) {
+      return TextSpan(text: text, style: style);
+    }
+
+    return TextSpan(
+      children: _buildTextSpansMultiLine(
+        text: text,
+        style: style,
+        maxWidth: maxWidth,
+      ),
+    );
+  }
+
+  bool _checkOverflow({
+    required double maxWidth,
+    required double maxHeight,
+    required TextSpan textSpan,
+  }) {
+    final textPainter = TextPainter(
       text: textSpan,
       maxLines: widget.maxLines,
+      ellipsis: widget.overflow == TextOverflow.ellipsis ? '…' : null,
       textDirection: widget.textDirection ?? TextDirection.ltr,
       textAlign: widget.textAlign ?? TextAlign.start,
       textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
@@ -173,71 +189,91 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
 
     textPainter.layout(maxWidth: maxWidth);
 
-    final lineMetrics = textPainter.computeLineMetrics();
-    final lineHeight = lineMetrics.isNotEmpty ? lineMetrics.first.height : 0;
-
-    bool isOverflowing = textPainter.height > maxHeight ||
+    return textPainter.height > maxHeight ||
         textPainter.maxIntrinsicWidth > maxWidth ||
-        textPainter.didExceedMaxLines ||
-        lineHeight * widget.maxLines < textPainter.height;
-
-    return isOverflowing;
+        textPainter.didExceedMaxLines;
   }
 
-  /// Builds [TextSpan]s that honor explicit newlines (\n, \r\n) and then
-  /// word-wrap each paragraph to [maxWidth].
-  List<TextSpan> _buildTextSpans(
-      {required String text,
-      required TextStyle style,
-      required double maxWidth}) {
+  /// Multi-line only: honors explicit newlines and word-wraps.
+  /// If [breakLongWords] is true, long unbroken words can be split by characters.
+  List<TextSpan> _buildTextSpansMultiLine({
+    required String text,
+    required TextStyle style,
+    required double maxWidth,
+  }) {
     final paragraphs = text.split(RegExp(r'\r?\n'));
     final spans = <TextSpan>[];
 
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: widget.maxLines,
+      ellipsis: widget.overflow == TextOverflow.ellipsis ? '…' : null,
       textAlign: widget.textAlign ?? TextAlign.start,
       textDirection: widget.textDirection ?? TextDirection.ltr,
       locale: widget.locale,
       textScaler: widget.textScaler,
       textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
+      textHeightBehavior: widget.textHeightBehavior,
     );
 
     for (var p = 0; p < paragraphs.length; p++) {
       final paragraph = paragraphs[p];
-      final words = paragraph
-          .split(RegExp(r'\s+'))
-          .where((s) => s.isNotEmpty)
-          .toList();
+      final words = paragraph.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
 
       if (words.isEmpty) {
-        if (p < paragraphs.length - 1) {
-          spans.add(const TextSpan(text: '\n'));
-        }
+        if (p < paragraphs.length - 1) spans.add(const TextSpan(text: '\n'));
         continue;
       }
 
       String currentLine = '';
-      for (var word in words) {
-        final testLine =
-            currentLine.isEmpty ? word : '$currentLine $word';
+
+      for (final word in words) {
+        final testLine = currentLine.isEmpty ? word : '$currentLine $word';
         textPainter.text = TextSpan(text: testLine, style: style);
         textPainter.layout(maxWidth: maxWidth);
 
-        if (textPainter.didExceedMaxLines ||
-            textPainter.maxIntrinsicWidth > maxWidth) {
-          if (currentLine.isNotEmpty) {
-            spans.add(TextSpan(text: currentLine, style: style));
-            spans.add(const TextSpan(text: '\n'));
-          }
-          currentLine = word;
-        } else {
+        final overflowed = textPainter.didExceedMaxLines || textPainter.maxIntrinsicWidth > maxWidth;
+
+        if (!overflowed) {
           currentLine = testLine;
+          continue;
         }
+
+        if (currentLine.isNotEmpty) {
+          spans.add(TextSpan(text: currentLine, style: style));
+          spans.add(const TextSpan(text: '\n'));
+          currentLine = '';
+        }
+
+        if (!widget.breakLongWords) {
+          currentLine = word;
+          continue;
+        }
+
+        // Split long unbroken word by characters
+        String chunk = '';
+        for (final ch in word.characters) {
+          final candidate = '$chunk$ch';
+          textPainter.text = TextSpan(text: candidate, style: style);
+          textPainter.layout(maxWidth: maxWidth);
+
+          final charOverflowed = textPainter.maxIntrinsicWidth > maxWidth;
+
+          if (charOverflowed && chunk.isNotEmpty) {
+            spans.add(TextSpan(text: chunk, style: style));
+            spans.add(const TextSpan(text: '\n'));
+            chunk = ch;
+          } else {
+            chunk = candidate;
+          }
+        }
+        currentLine = chunk;
       }
+
       if (currentLine.isNotEmpty) {
         spans.add(TextSpan(text: currentLine, style: style));
       }
+
       if (p < paragraphs.length - 1) {
         spans.add(const TextSpan(text: '\n'));
       }
