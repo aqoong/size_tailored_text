@@ -3,7 +3,6 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:characters/characters.dart';
 
 class SizeTailoredTextWidget extends StatefulWidget {
   final String text;
