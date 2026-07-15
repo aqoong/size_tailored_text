@@ -49,8 +49,6 @@ class SizeTailoredTextWidget extends StatefulWidget {
 }
 
 class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
-  double? _cachedFontSize;
-
   @override
   Widget build(BuildContext context) {
     String clearedText = widget.text;
@@ -68,80 +66,71 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
 
         final effectiveStyle = widget.style ?? DefaultTextStyle.of(context).style;
         final initialStyleFontSize = effectiveStyle.fontSize ?? 14.0;
+        final effectiveTextDirection = widget.textDirection ?? Directionality.of(context);
+        final effectiveLocale = widget.locale ?? Localizations.maybeLocaleOf(context);
 
-        double fontSize = _cachedFontSize != null
-            ? _cachedFontSize!.clamp(widget.minFontSize, initialStyleFontSize)
-            : initialStyleFontSize;
-
-        TextSpan tempTextSpan = TextSpan(
-          text: clearedText,
-          style: effectiveStyle.copyWith(fontSize: fontSize),
-        );
-
-        bool foundFit = false;
-
-        while (fontSize >= widget.minFontSize) {
-          final newTextSpan = _buildSpanForMeasureAndRender(
-            text: clearedText,
-            style: effectiveStyle.copyWith(fontSize: fontSize),
-            maxWidth: maxWidth,
-          );
-
-          if (_checkOverflow(
-            maxWidth: maxWidth,
-            maxHeight: maxHeight,
-            textSpan: newTextSpan,
-          )) {
-            fontSize -= widget.stepGranularity;
-          } else {
-            tempTextSpan = newTextSpan;
-            foundFit = true;
-            break;
-          }
-        }
-
-        if (foundFit && fontSize < initialStyleFontSize) {
-          double tryFontSize = fontSize + widget.stepGranularity;
-          while (tryFontSize <= initialStyleFontSize) {
-            final trySpan = _buildSpanForMeasureAndRender(
+        TextSpan spanAt(double size) => _buildSpanForMeasureAndRender(
               text: clearedText,
-              style: effectiveStyle.copyWith(fontSize: tryFontSize),
+              style: effectiveStyle.copyWith(fontSize: size),
               maxWidth: maxWidth,
+              textDirection: effectiveTextDirection,
+              locale: effectiveLocale,
             );
 
-            if (_checkOverflow(
+        bool overflowsAt(TextSpan span) => _checkOverflow(
               maxWidth: maxWidth,
               maxHeight: maxHeight,
-              textSpan: trySpan,
-            )) {
-              break;
+              textSpan: span,
+              textDirection: effectiveTextDirection,
+              locale: effectiveLocale,
+            );
+
+        // Overflow is assumed monotonic in font size (bigger font -> more likely to
+        // overflow), so binary-search the largest step index (smallest font) that still
+        // fits, instead of linearly scanning every candidate size by `stepGranularity`.
+        final maxStepIndex = ((initialStyleFontSize - widget.minFontSize) / widget.stepGranularity).floor();
+
+        double fontSize;
+        TextSpan tempTextSpan;
+        int? bestStepIndex;
+        TextSpan? bestSpan;
+
+        if (maxStepIndex >= 0) {
+          int lo = 0;
+          int hi = maxStepIndex;
+
+          while (lo <= hi) {
+            final mid = lo + ((hi - lo) >> 1);
+            final candidateSize = initialStyleFontSize - mid * widget.stepGranularity;
+            final candidateSpan = spanAt(candidateSize);
+
+            if (!overflowsAt(candidateSpan)) {
+              bestStepIndex = mid;
+              bestSpan = candidateSpan;
+              hi = mid - 1; // a smaller index means a larger font; keep looking upward.
+            } else {
+              lo = mid + 1;
             }
-            fontSize = tryFontSize;
-            tempTextSpan = trySpan;
-            tryFontSize += widget.stepGranularity;
           }
         }
 
-        if (!foundFit) {
+        if (bestStepIndex != null) {
+          fontSize = initialStyleFontSize - bestStepIndex * widget.stepGranularity;
+          tempTextSpan = bestSpan!;
+        } else {
           fontSize = widget.minFontSize;
-          tempTextSpan = _buildSpanForMeasureAndRender(
-            text: clearedText,
-            style: effectiveStyle.copyWith(fontSize: fontSize),
-            maxWidth: maxWidth,
-          );
+          tempTextSpan = spanAt(fontSize);
         }
-
-        _cachedFontSize = fontSize;
 
         return RichText(
           text: tempTextSpan,
           overflow: widget.overflow,
           maxLines: widget.maxLines,
           textScaler: widget.textScaler,
-          locale: widget.locale,
+          locale: effectiveLocale,
           textAlign: widget.textAlign ?? TextAlign.start,
           textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
-          textDirection: widget.textDirection,
+          textDirection: effectiveTextDirection,
           textHeightBehavior: widget.textHeightBehavior,
           softWrap: widget.maxLines > 1,
         );
@@ -155,6 +144,8 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
     required String text,
     required TextStyle style,
     required double maxWidth,
+    required TextDirection textDirection,
+    required Locale? locale,
   }) {
     if (widget.maxLines == 1) {
       return TextSpan(text: text, style: style);
@@ -165,6 +156,8 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
         text: text,
         style: style,
         maxWidth: maxWidth,
+        textDirection: textDirection,
+        locale: locale,
       ),
     );
   }
@@ -173,16 +166,18 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
     required double maxWidth,
     required double maxHeight,
     required TextSpan textSpan,
+    required TextDirection textDirection,
+    required Locale? locale,
   }) {
     final textPainter = TextPainter(
       text: textSpan,
       maxLines: widget.maxLines,
       ellipsis: widget.overflow == TextOverflow.ellipsis ? '…' : null,
-      textDirection: widget.textDirection ?? TextDirection.ltr,
+      textDirection: textDirection,
       textAlign: widget.textAlign ?? TextAlign.start,
       textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
       textScaler: widget.textScaler,
-      locale: widget.locale,
+      locale: locale,
       textHeightBehavior: widget.textHeightBehavior,
     );
 
@@ -199,6 +194,8 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
     required String text,
     required TextStyle style,
     required double maxWidth,
+    required TextDirection textDirection,
+    required Locale? locale,
   }) {
     final paragraphs = text.split(RegExp(r'\r?\n'));
     final spans = <TextSpan>[];
@@ -208,8 +205,8 @@ class _SizeTailoredTextWidgetState extends State<SizeTailoredTextWidget> {
       maxLines: widget.maxLines,
       ellipsis: widget.overflow == TextOverflow.ellipsis ? '…' : null,
       textAlign: widget.textAlign ?? TextAlign.start,
-      textDirection: widget.textDirection ?? TextDirection.ltr,
-      locale: widget.locale,
+      textDirection: textDirection,
+      locale: locale,
       textScaler: widget.textScaler,
       textWidthBasis: widget.textWidthBasis ?? TextWidthBasis.parent,
       textHeightBehavior: widget.textHeightBehavior,

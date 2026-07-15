@@ -77,3 +77,11 @@ pre-release version
 ### Changes
 * **Assertions:** `stepGranularity` and `minFontSize` must be greater than zero.
 * **Overflow:** When text does not fit at `minFontSize`, the widget renders at `minFontSize` and relies on `RichText`'s `overflow` for the final appearance.
+
+## 1.1.1
+
+### Bug fixes
+* **Measurement vs rendering (textDirection/locale):** When `textDirection` or `locale` is left unset, the internal font-size measurement now falls back to the ambient `Directionality`/`Localizations` just like the final `RichText`, instead of hard-coding `TextDirection.ltr` and a `null` locale. Previously, RTL layouts or locale-sensitive glyph widths (e.g. CJK) could be measured differently than they were rendered, leading to incorrect shrink decisions.
+
+### Changes
+* **Font-size search:** Replaced the linear, `stepGranularity`-by-`stepGranularity` scan (shrink then grow) with a binary search over the same candidate sizes. This cuts down the number of `TextPainter` layout passes per build, which matters most on rebuild-heavy scenarios (screen rotation, foldable hinge changes, window resizing) where the widget's whole purpose is to keep re-fitting the text. Behavior is unchanged; `_cachedFontSize` is no longer needed since every build now searches the full range directly.
